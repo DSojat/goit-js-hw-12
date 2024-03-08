@@ -75,7 +75,7 @@ searchForm.addEventListener('submit', event => {
           message:
             'Sorry, there are no images matching your search query. Please try again!',
           backgroundColor: '#EF4040',
-          iconUrl: './img/x-octagon.svg',
+          iconUrl: './img/xoctagon.svg',
         });
       } else {
         renderGallery(hits);
