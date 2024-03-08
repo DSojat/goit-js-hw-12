@@ -48,6 +48,16 @@ function renderGallery(hits, totalHits) {
   loadButton.classList.remove('visually-hidden');
 }
 
+function scrollGallery() {
+  const elem = document.querySelector('.gallery-item');
+  const { height } = elem.getBoundingClientRect();
+  window.scrollBy({
+    top: height * 2,
+    left: 0,
+    behavior: 'smooth',
+  });
+}
+
 searchForm.addEventListener('submit', event => {
   event.preventDefault();
   if (!loadButton.classList.contains('visually-hidden')) {
@@ -69,6 +79,7 @@ searchForm.addEventListener('submit', event => {
         });
       } else {
         renderGallery(hits);
+        scrollGallery();
       }
     });
     searchForm.reset();
@@ -82,5 +93,6 @@ loadButton.addEventListener('click', event => {
   galleryLoaderToggle();
   nextPage(searchImageName).then(({ hits, totalHits }) => {
     renderGallery(hits, totalHits);
+    scrollGallery();
   });
 });
