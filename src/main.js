@@ -9,7 +9,6 @@ iziToast.settings({
   maxWidth: 432,
   theme: 'dark',
   position: 'topRight',
-  iconUrl: './img/x-octagon.svg',
 });
 
 // Описаний у документації
@@ -76,6 +75,7 @@ searchForm.addEventListener('submit', event => {
           message:
             'Sorry, there are no images matching your search query. Please try again!',
           backgroundColor: '#EF4040',
+          iconUrl: './img/x-octagon.svg',
         });
       } else {
         renderGallery(hits);
