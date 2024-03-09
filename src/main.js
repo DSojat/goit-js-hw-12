@@ -17,9 +17,7 @@ import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 
 import getGallerySearch from './js/pixabay-api';
-import { nextPage } from './js/pixabay-api';
 import { limitPage } from './js/pixabay-api';
-import { page } from './js/pixabay-api';
 import galleryAdd from './js/render-functions';
 import { galleryLoaderToggle } from './js/render-functions';
 
@@ -27,6 +25,7 @@ const searchForm = document.querySelector('.search-form');
 const gallery = document.querySelector('.gallery-list');
 const loadButton = document.querySelector('.load-btn');
 let searchImageName = '';
+let page = 1;
 const instanceGallery = new SimpleLightbox('.gallery-list a', {
   captionsData: 'alt',
   captionDelay: 250,
@@ -40,7 +39,6 @@ function renderGallery(hits, totalHits) {
   if (page >= totalPages) {
     return iziToast.info({
       message: "We're sorry, but you've reached the end of search results",
-      iconUrl: null,
       theme: 'light',
     });
   }
@@ -57,42 +55,63 @@ function scrollGallery() {
   });
 }
 
+function errorGallery(error) {
+  const loader = document.querySelector('.loader');
+  if (loader) {
+    loader.remove();
+  }
+  alert(error);
+}
+
 searchForm.addEventListener('submit', event => {
   event.preventDefault();
   if (!loadButton.classList.contains('visually-hidden')) {
     loadButton.classList.add('visually-hidden');
   }
   searchImageName = searchForm.elements.search.value.trim();
+  gallery.innerHTML = '';
+  page = 1;
+  if (!searchImageName) {
+    return iziToast.info({
+      message: "We're sorry, but you need to fill in the search area!",
+      theme: 'light',
+    });
+  }
+  galleryLoaderToggle();
 
-  if (searchImageName) {
-    gallery.innerHTML = '';
-    galleryLoaderToggle();
-    getGallerySearch(searchImageName).then(({ hits, totalHits }) => {
+  //далі йде звернення до функції з async/await у файлі pixabay-api.js
+  //де потім результат обробляється у зовнішньому коді через методи then/catch
+  getGallerySearch(searchImageName, page)
+    .then(response => {
+      const { hits } = response;
       if (hits.length === 0) {
         gallery.innerHTML = '';
         galleryLoaderToggle();
-        iziToast.show({
+        iziToast.warning({
           message:
             'Sorry, there are no images matching your search query. Please try again!',
           backgroundColor: '#EF4040',
-          iconUrl: './img/xoctagon.svg',
         });
       } else {
         renderGallery(hits);
-        scrollGallery();
       }
-    });
-    searchForm.reset();
-  } else {
-    gallery.innerHTML = '';
-  }
+    })
+    .catch(error => errorGallery(error));
+  searchForm.reset();
 });
 
 loadButton.addEventListener('click', event => {
   loadButton.classList.add('visually-hidden');
   galleryLoaderToggle();
-  nextPage(searchImageName).then(({ hits, totalHits }) => {
-    renderGallery(hits, totalHits);
-    scrollGallery();
-  });
+  page += 1;
+
+  //далі йде звернення до функції з async/await у файлі pixabay-api.js
+  //де потім результат обробляється у зовнішньому коді через методи then/catch
+  getGallerySearch(searchImageName, page)
+    .then(response => {
+      const { hits, totalHits } = response;
+      renderGallery(hits, totalHits);
+      scrollGallery();
+    })
+    .catch(error => errorGallery(error));
 });
